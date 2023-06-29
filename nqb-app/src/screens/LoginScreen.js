@@ -1,47 +1,41 @@
 import React, {useState, useEffect} from 'react'
 import {Link, useNavigate, useLocation} from 'react-router-dom'
+import {useDispatch, useSelector} from 'react-redux'
 import {Form, Button, Row, Col} from 'react-bootstrap'
+import Message from '../components/Message'
 import FormContainer from '../components/FormContainer'
-import axios from 'axios'
+import Loader from '../components/Loader'
+import {login} from '../actions/userActions'
 
 function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [userInfo, setUserInfo] = useState(null)
 
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const redirect = location.search ? location.search.split('=')[1] : '/'
+
+  const userLogin = useSelector((state) => state.userLogin)
+  const {error, loading, userInfo} = userLogin
 
   useEffect(() => {
     if (userInfo) {
       navigate(redirect)
     }
-  }, [userInfo, navigate, redirect])
+  }, [navigate, userInfo, redirect])
 
-  const submitHandler = async (e) => {
+  const submitHandler = (e) => {
     e.preventDefault()
-    try {
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      }
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/users/login/',
-        {username: email, password: password},
-        config
-      )
-      setUserInfo(response.data)
-    } catch (error) {
-      console.error('Login error:', error)
-    }
+    dispatch(login(email, password))
   }
 
   return (
     <FormContainer>
       <h1>Sign In</h1>
+      {error && <Message variant='danger'>{error}</Message>}
+      {loading && <Loader />}
       <Form onSubmit={submitHandler}>
         <Form.Group controlId='email'>
           <Form.Label>Email</Form.Label>
